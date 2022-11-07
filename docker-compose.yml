@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  db:
+    container_name: tutorial-db
+    image: mysql/mysql-server:8.0
+    command: mysqld --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=pass
+      - MYSQL_DATABASE=ec_site_devel
+      - MYSQL_ROOT_HOST=%
+  main:
+    container_name: tutorial-main
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - .:/app/
+    working_dir: /app/
+    stdin_open: true
+    tty: true
+volumes:
+  db-data: {}
