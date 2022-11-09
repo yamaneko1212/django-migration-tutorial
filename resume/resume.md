@@ -3,8 +3,8 @@
 
 ## この発表の概要
 
-目的: DjangoのMigration(以降単にMigrationと表記します)の基本的な使い方を説明する
-対象者: Django初心者・初級者
+* 目的: DjangoのMigration(以降単にMigrationと表記します)の基本的な使い方を説明する
+* 対象者: Django初心者・初級者
 
 ## あなた is だれ?
 
@@ -13,7 +13,7 @@
 ### Work for
 
 * Standard株式会社: Manager
-* Artis株式会社: Backend Engineer
+* Artis株式会社: Backend & OPS Engineer
 
 ### Experiences
 
@@ -35,12 +35,10 @@
 * [DRF] ModelSerializer
 * [DRF] ModelViewSet
 
-「Modelsが全体のベースとなっている」
+「Modelsが全体のベースとなっている」<br>
 「モデルとテーブルの同期も最小限のコストで機能的に行える」
 
 ## Migration機能 is 何
-
-
 
 以下をまとめた機能
 
@@ -275,6 +273,43 @@ To fix them run 'python manage.py makemigrations --merge'
 
 毎回マイグレーションファイルが作られてしまう
 
+例: lambdaをフィールドの引数に与える場合
+
+```python
+class Customer(models.Model):
+    name = models.CharField('氏名', max_length=32)
+    email = models.EmailField('メールアドレス')
+    postal_code = models.CharField('郵便番号', max_length=8)
+    address = models.CharField('住所', max_length=128)
+    tel = models.CharField('電話番号', max_length=11, blank=True)
+    signed_up_at = models.DateTimeField('サインアップ日時',
+                                        default=lambda: timezone.localnow())
+
+    class Meta:
+        verbose_name = '顧客'
+        verbose_name_plural = verbose_name
+```
+
+```bash
+$ pipenv run python manage.py makemigrations 
+Migrations for 'ec_site':
+  ec_site/migrations/0003_customer_nickname.py
+    - Add field nickname to customer
+Traceback (most recent call last):
+  File "/app/dc_tutorial/manage.py", line 22, in <module>
+    main()
+
+...中略...
+
+ne 158, in serialize
+    raise ValueError("Cannot serialize function: lambda")
+ValueError: Cannot serialize function: lambda
+```
+
+makemigrationsの行っていること: モデルの状態をシリアライズしてマイグレーションファイルに保存している．
+すべての要素はソースコードの状態に限らず常に一意の結果を返す必要がある
+状態が変わる -> モデルに変更が入ったと評価される
+
 ## データマイグレーション
 
 データの変更処理をマイグレーションで統合管理する
@@ -337,9 +372,7 @@ class Migration(migrations.Migration):
 
 ### `makemigrations` - マイグレーションファイルの作成
 
-
-
-## ワークフロー例
+## 実際に開発におけるベターなワークフロー例
 
 実際の開発におけるワークフロー
 
@@ -383,18 +416,37 @@ $ python manage.py migrate
 
 既に適用されたマイグレーションファイルを書き換える
 
+すでに適用されたマイグレーションファイルを消す
+
+django_migrations
+
 システム全体でのスキーマ・データの一貫性が失われる
+
+## 十分に注意して行うべき操作
+
+* 手動でテーブル定義に変更を加える
 
 ## QA
 
 Q: DBルーターに対応していますか?
 
-Q: サーバを無停止でマイグレーションできますか?
+A: 対応しています．マイグレーションを実行するデータベースを指定できます．
+詳しくは[マニュアル](https://docs.djangoproject.com/en/4.1/topics/db/multi-db/)を御覧ください．
 
-できますが，
+Q: サービスを止めずにマイグレーションを実行するとは可能ですか?
+A: 可能ですが、実行するDDLに応じて以下のような可能性に注意をしてください．
+
+* テーブルコピー
+* ロック
+* 並列DMLの許可
+
+いずれもサービス運用に支障をきたす可能性があります．
+詳しくは使用しているデータベースのマニュアルをご確認ください．
 
 Q マイグレーションファイルの中でモデルに付けたメソッドを呼び出せません．
 
-Q: sqlite
+Q: RunPythonのスクリプトの中で、モデルにアクセスをするにはなぜ`apps.get_model(app_label, model_name)`を使用しないといけないのですか?
+A: マイグレーションファイルの中の処理は、マイグレーションの依存グラフの状態に即したモデルオブジェクトを使用する必要があるためです．
 
-
+Q: 開発をsqlit3, 本番を別のRDBMSにすることは可能ですか?
+A 可能ですが、データベースの仕様差に気をつけてください．
