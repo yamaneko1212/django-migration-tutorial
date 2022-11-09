@@ -6,6 +6,7 @@ class Customer(models.Model):
     email = models.EmailField('メールアドレス')
     postal_code = models.CharField('郵便番号', max_length=8)
     address = models.CharField('住所', max_length=128)
+    tel = models.CharField('電話番号', max_length=11, blank=True)
 
     class Meta:
         verbose_name = '顧客'
