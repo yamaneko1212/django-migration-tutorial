@@ -202,14 +202,22 @@ $ python manage.py showmigrations
 * データベースに適用されたマイグレーションファイルの状態はデータベースに記録される．
 	* ソースコードリポジトリはマイグレーションファイルの適用についての記録を持たない．
 
-## マイグレーションファイルの中身は何なのか?
+## マイグレーションファイルは何なのか?
 
 
-<!-- TODO: 中身のファイルは実際の0002ファイルに差し替える  -->
+### ファイル名 
 
-```python
-from django.db import migrations, models
+`python manage.py makemigrations` によって自動的に命名される．
 
+* 例1: `0001_initial.py`
+* 例2: `0002_auto_20221102_1015.py`
+
+
+4桁の通し番号の数字はフレームワークが自動的につけているので、目安程度の意味しかない．
+
+
+
+```python:0002_auto_20221102_1015.py
 class Migration(migrations.Migration):
 
     dependencies = [('migrations', '0001_initial')]
@@ -222,19 +230,44 @@ class Migration(migrations.Migration):
  
 大まかな構造の説明
 
-* dependencies: 依存するマイグレーションファイル
+* initial: このマイグレーションがアプリの最初のマイグレーションかを示すフラグ
+* dependencies: 依存するマイグレーションファイル(複数選択可)
 * operations: 操作(例だと，モデルの削除とカラムの追加)
-
-dependenciesから操作の順を示した木構造が示される
-
-TODO: 木構造の絵を用意する
 
 operationsはある時点でのモデルの状態を状態を示します．
 常に一意のデータとして解釈できるよう、状態を**シリアライズして**ファイルに保存します．
 
-### シリアライズ
+マイグレーションファイルとマイグレーション処理の関係
 
-変更の検出に仕様
+* マイグレーションはDjangoアプリごとに管理される
+* dependenciesから操作の順を示したグラフ構造が示される
+* `$ python manage.py migrate`を実行すると、グラフ構造に沿って操作がデータベースに適用される
+
+![アーキテクチャ](migration-basic.png)<br>
+
+## 分岐のあるケース
+
+![アーキテクチャ](with-branch.png)<br>
+
+この状態で`$ python manage.py migrate`するとエラーが出る．
+
+```bash
+$ pipenv run python manage.py migrate
+CommandError: Conflicting migrations detected; multiple leaf nodes in the migration graph: (0002_auto_20221102_2136, 0002_alter_customer in ec_site).
+To fix them run 'python manage.py makemigrations --merge'
+```
+
+マイグレーションの依存のグラフに葉(leaf)が出来ている状態なのでマージする
+
+![アーキテクチャ](merge.png)<br>
+
+閉路が出来たグラフの場合、マイグレーションの直列化して処理を行う
+
+![アーキテクチャ](serialize-dependencies.png)<br>
+
+## シリアライズ
+
+変更の検出に使用
 
 何と何が同じかを判定する
 
@@ -292,17 +325,17 @@ class Migration(migrations.Migration):
 
 ## 操作
 
-### showmigrations
+### `showmigrations`
 
-### migrate - マイグレーションの適用
+### `migrate` - マイグレーションの適用
 
-指定しないと
+指定しないとすべてのアプリの未適用のマイグレーションを適用する
 
-### migrate - ロールバック
+### `migrate app_label migration_name` - ロールバック
 
 指定したマイグレーションの状態に戻す
 
-### makemigrations - マイグレーションファイルの作成
+### `makemigrations` - マイグレーションファイルの作成
 
 
 
