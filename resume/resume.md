@@ -245,14 +245,28 @@ $ echo "select * from django_migrations;"  | python manage.py dbshell
 
 #### ファイルの中の大まかな構造の説明
 
-```python:0002_auto_20221102_1015.py
+```python
 class Migration(migrations.Migration):
+  
+    initial = True
 
-    dependencies = [('migrations', '0001_initial')]
+    dependencies = []
 
     operations = [
-        migrations.DeleteModel('Tribble'),
-        migrations.AddField('Author', 'rating', models.IntegerField(default=0)),
+        migrations.CreateModel(
+            name='Customer',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=32, verbose_name='氏名')),
+                ('email', models.EmailField(max_length=254, verbose_name='メールアドレス')),
+                ('postal_code', models.CharField(max_length=8, verbose_name='郵便番号')),
+                ('address', models.CharField(max_length=128, verbose_name='住所')),
+            ],
+            options={
+                'verbose_name': '顧客',
+                'verbose_name_plural': '顧客',
+            },
+        ),
     ]
 ```
 
@@ -266,6 +280,7 @@ operationsはある時点でのモデルの状態を状態を示します．
 #### マイグレーションファイルとマイグレーション処理の関係
 
 * マイグレーションはDjangoアプリごとに管理される．
+　*　マイグレーションファイルは各アプリのmigrationsディレクトリに保存される． 
 * `dependencies`からマイグレーションの順を示したグラフ構造が示される．
   * `initial`がグラフの起点となる．
 * `operations`からバックエンドに応じたクエリを生成する．
@@ -551,3 +566,11 @@ A: 前項の通り、マイグレーションの依存グラフの状態に即�
 
 * https://docs.djangoproject.com/en/4.1/topics/migrations/
 * https://github.com/django/django
+
+## 補
+
+この資料は以下に基づいて作成しました．
+
+* Django 4.1
+* MySQL8
+* Debian Buster
