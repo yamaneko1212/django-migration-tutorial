@@ -5,6 +5,13 @@
 
 * 目的: DjangoのMigration(以降単にマイグレーションと表記します)の基本的な使い方の解説
 * 対象者: Django初心者・初級者
+* 投影資料・サンプルコード https://github.com/yamaneko1212/django-migration-tutorial/
+* 参考文献・検証環境等
+  * Django 4.1
+    * https://docs.djangoproject.com/en/4.1/topics/migrations/
+    * Djangoのソースコード
+  * MySQL8
+  * Debian Buster
 
 ## あなた is だれ?
 
@@ -561,16 +568,3 @@ A: マイグレーションファイルの中の処理は、マイグレーシ�
 
 Q: `apps.get_model(app_label, model_name)`で取得したモデルクラスについて、定義したメソッドを呼び出す方法はありますか?<br>
 A: 前項の通り、マイグレーションの依存グラフの状態に即したモデルクラスとなっているので、ビルトイン以外のメソッドは呼び出せません．
-
-## 参考文献
-
-* https://docs.djangoproject.com/en/4.1/topics/migrations/
-* https://github.com/django/django
-
-## 補
-
-この資料は以下に基づいて作成しました．
-
-* Django 4.1
-* MySQL8
-* Debian Buster
